@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c79583">
+  <meta name="description" content="A quiet visual timer beneath the changing skies of Ancient Athens.">
+  <title>Ancient Athens Visual Timer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --sky-top: #bc8394;
+      --sky-middle: #e9aa88;
+      --sky-bottom: #f4d1a2;
+      --ink: #493f49;
+      --muted-ink: #685762;
+      --night-opacity: 0;
+      --torch-opacity: 0;
+      --window-opacity: 0;
+      --scene-dim: 0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+
+    body {
+      overflow: hidden;
+      background: #bc8394;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .sky {
+      position: absolute;
+      inset: -2%;
+      z-index: -3;
+      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-middle) 56%, var(--sky-bottom) 100%);
+      transform-origin: 50% 50%;
+      will-change: transform, filter;
+    }
+
+    .sky.breathing { animation: breathe 4s ease-in-out infinite; }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+      50% { transform: scale(1.025); opacity: .96; filter: brightness(1.055); }
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .scene-dimmer {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: #17233f;
+      opacity: var(--scene-dim);
+      pointer-events: none;
+    }
+
+    .starfield { opacity: var(--night-opacity); transform-origin: 50% 45%; }
+    .app.paused .starfield { animation: star-breathe 4s ease-in-out infinite; }
+    @keyframes star-breathe { 0%, 100% { opacity: var(--night-opacity); transform: scale(1); } 50% { opacity: calc(var(--night-opacity) * .74); transform: scale(1.012); } }
+    .star { animation: twinkle var(--twinkle, 3.5s) ease-in-out infinite alternate; animation-delay: var(--delay, 0s); }
+    @keyframes twinkle { from { opacity: .18; } to { opacity: .88; } }
+
+    .shooting-stars { opacity: var(--night-opacity); }
+    .shooting-star { opacity: 0; }
+    .shooting-star.active { animation: shoot 1.35s cubic-bezier(.2,.5,.35,1) 1; }
+    @keyframes shoot {
+      0% { opacity: 0; transform: translate(-20px, -10px); }
+      12% { opacity: .8; }
+      100% { opacity: 0; transform: translate(210px, 90px); }
+    }
+
+    .torchlight { opacity: var(--torch-opacity); }
+    .window-light {
+      opacity: var(--window-opacity);
+      fill: #ffd889;
+      filter: drop-shadow(0 0 4px rgba(255, 185, 83, .95));
+      transition: opacity .9s ease;
+    }
+    .flame { transform-box: fill-box; transform-origin: center bottom; animation: flame 2.1s ease-in-out infinite alternate; }
+    .flame:nth-child(2n) { animation-duration: 2.8s; animation-delay: -.9s; }
+    @keyframes flame { from { opacity: .6; transform: scale(.82, .9); } to { opacity: 1; transform: scale(1.12, 1.16); } }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 46%, transparent 38%, rgba(48, 33, 49, .14) 100%);
+    }
+
+    .topbar {
+      position: absolute;
+      top: max(27px, env(safe-area-inset-top));
+      left: clamp(24px, 4.5vw, 72px);
+      right: clamp(24px, 4.5vw, 72px);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { width: 36px; height: 36px; flex: none; opacity: .78; }
+    .brand-name { font-size: 12px; font-weight: 650; letter-spacing: .19em; text-transform: uppercase; line-height: 1.45; }
+    .brand-sub { margin-top: 3px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .65; }
+    .top-note { padding-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; opacity: .7; text-align: right; }
+
+    .timer-panel {
+      position: absolute;
+      top: clamp(106px, 17.5vh, 190px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92vw, 680px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      filter: drop-shadow(0 2px 20px rgba(255, 235, 205, .25));
+    }
+
+    .eyebrow { font-size: 10px; font-weight: 680; letter-spacing: .34em; text-transform: uppercase; opacity: .68; }
+    .time-row { display: flex; align-items: center; justify-content: center; margin-top: 5px; font-variant-numeric: tabular-nums; }
+    .time-field {
+      width: 2.18ch;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      outline: none;
+      border-radius: 9px;
+      background: transparent;
+      color: inherit;
+      text-align: center;
+      font-size: clamp(74px, 10vw, 151px);
+      font-weight: 240;
+      letter-spacing: -.09em;
+      line-height: 1.12;
+      appearance: none;
+      caret-color: currentColor;
+    }
+    .time-field:focus-visible { background: rgba(255, 250, 239, .18); box-shadow: 0 0 0 2px rgba(255, 248, 230, .65); }
+    .colon { position: relative; top: -.065em; padding: 0 .04em .04em .01em; font-size: clamp(66px, 9vw, 132px); font-weight: 200; line-height: 1; opacity: .72; }
+    .timer-caption { margin-top: 1px; font-size: 11px; font-weight: 550; letter-spacing: .23em; text-transform: uppercase; opacity: .68; }
+
+    .bottom-ui {
+      position: absolute;
+      left: 50%;
+      bottom: max(30px, calc(env(safe-area-inset-bottom) + 20px));
+      transform: translateX(-50%);
+      width: min(440px, calc(100vw - 32px));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid rgba(255, 251, 241, .56);
+      border-radius: 999px;
+      background: rgba(251, 241, 223, .73);
+      box-shadow: 0 12px 42px rgba(60, 45, 52, .14), inset 0 1px rgba(255, 255, 255, .45);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .control {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      color: #514c50;
+      background: transparent;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .control:hover { background: rgba(255, 255, 255, .5); transform: translateY(-1px); }
+    .control:focus-visible { outline: 2px solid #68516c; outline-offset: 2px; }
+    .control:active { transform: scale(.94); }
+    .control svg { width: 18px; height: 18px; stroke-width: 1.8; }
+    .control svg[hidden] { display: none; }
+    .control.primary { width: 52px; height: 52px; color: #fbf2e4; background: #5b5658; box-shadow: 0 4px 12px rgba(50, 44, 50, .22); }
+    .control.primary:hover { background: #47454e; }
+    .control.primary svg { width: 19px; height: 19px; }
+    .divider { width: 1px; height: 22px; margin: 0 3px; background: rgba(75, 70, 76, .16); }
+    .bottom-note { color: var(--muted-ink); font-size: 10px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; text-shadow: 0 1px 10px rgba(255, 245, 228, .7); }
+
+    .ui-hidden .topbar { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+    .ui-hidden .bottom-ui { opacity: 0; transform: translate(-50%, 12px); pointer-events: none; }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 640px) {
+      .topbar { top: max(21px, env(safe-area-inset-top)); left: 22px; right: 22px; }
+      .brand-mark { width: 29px; height: 29px; }
+      .brand-name { font-size: 10px; letter-spacing: .14em; }
+      .brand-sub, .top-note { font-size: 9px; }
+      .timer-panel { top: clamp(115px, 20vh, 185px); }
+      .time-field { font-size: clamp(69px, 16vw, 108px); }
+      .colon { font-size: clamp(62px, 14vw, 98px); }
+      .bottom-note { font-size: 9px; }
+    }
+
+    @media (max-height: 570px) {
+      .timer-panel { top: 73px; }
+      .time-field { font-size: clamp(58px, 12vh, 84px); }
+      .colon { font-size: clamp(54px, 11vh, 78px); }
+      .bottom-ui { bottom: max(13px, env(safe-area-inset-bottom)); gap: 6px; }
+      .bottom-note { display: none; }
+      .topbar { top: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" id="app">
+    <div class="sky" id="sky" aria-hidden="true"></div>
+
+    <svg class="scene" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustrated Acropolis and olive groves under a changing Athenian sky">
+      <defs>
+        <linearGradient id="farHill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#aa8794"/><stop offset="1" stop-color="#8b7889"/></linearGradient>
+        <linearGradient id="nearHill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#817d86"/><stop offset="1" stop-color="#626b75"/></linearGradient>
+        <linearGradient id="stone" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#e0b897"/><stop offset=".58" stop-color="#c29583"/><stop offset="1" stop-color="#a57b75"/></linearGradient>
+        <linearGradient id="frontStone" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#c29d89"/><stop offset="1" stop-color="#806b70"/></linearGradient>
+        <linearGradient id="ground" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#676b73"/><stop offset="1" stop-color="#383f52"/></linearGradient>
+        <radialGradient id="sunGlow"><stop stop-color="#fff7c9" stop-opacity=".62"/><stop offset=".36" stop-color="#fff0b7" stop-opacity=".2"/><stop offset="1" stop-color="#fff0b7" stop-opacity="0"/></radialGradient>
+        <radialGradient id="torchGlow"><stop stop-color="#ffdc89" stop-opacity=".8"/><stop offset=".23" stop-color="#ffc66f" stop-opacity=".34"/><stop offset="1" stop-color="#ffbd65" stop-opacity="0"/></radialGradient>
+        <mask id="crescent"><rect x="-40" y="-40" width="80" height="80" fill="white"/><circle cx="12" cy="-9" r="24" fill="black"/></mask>
+        <g id="oliveTree">
+          <path d="M0 81 C-4 59 -8 42 -5 23 M-4 57 C-18 43 -22 31 -29 24 M-4 45 C11 32 21 25 28 15 M-6 65 C15 51 25 48 38 43" fill="none" stroke="#424b58" stroke-width="8" stroke-linecap="round"/>
+          <path d="M-62 18 Q-62 -2 -43 -10 Q-43 -29 -19 -28 Q-3 -44 16 -31 Q40 -37 45 -18 Q69 -11 59 15 Q61 31 42 35 Q28 49 10 38 Q-6 48 -20 36 Q-41 42 -47 29 Q-64 32 -62 18Z" fill="#56656a"/>
+          <path d="M-59 7 Q-53 -9 -35 -10 Q-30 -28 -10 -26 Q8 -36 22 -24 Q44 -29 50 -10 Q59 2 50 14 Q39 4 29 10 Q17 3 8 16 Q-5 7 -16 19 Q-33 10 -43 22 Q-58 18 -59 7Z" fill="#75827d" opacity=".66"/>
+          <path d="M-45 28 Q-20 15 -4 29 M-5 7 Q11 -4 30 5 M18 29 Q34 17 51 20" fill="none" stroke="#899183" stroke-width="4" opacity=".5"/>
+        </g>
+        <g id="cypress"><path d="M0 0 Q-17 -38 -12 -94 Q-11 -132 0 -148 Q12 -132 12 -94 Q17 -38 0 0Z" fill="#3e515a"/><path d="M0 -139 Q-8 -100 -4 -22" fill="none" stroke="#728078" stroke-width="2" opacity=".35"/></g>
+        <g id="house"><rect x="0" y="11" width="42" height="33" rx="2" fill="#b89b91"/><path d="M-4 12 L21 0 L46 12Z" fill="#8d7378"/><rect x="15" y="26" width="9" height="18" rx="4.5" fill="#706b73"/></g>
+      </defs>
+
+      <!-- Faint clouds and a changing celestial body. -->
+      <g fill="#fff3df" opacity=".13">
+        <path d="M-80 245 C70 224 144 249 251 240 S419 222 518 235 C407 251 240 251 158 251 S-19 263 -80 245Z"/>
+        <path d="M915 183 C1030 168 1091 180 1203 175 S1380 174 1516 161 C1435 191 1270 189 1180 190 S996 202 915 183Z"/>
+        <path d="M478 356 C585 348 649 355 743 349 S903 346 969 336 C895 360 814 366 721 360 S550 364 478 356Z"/>
+      </g>
+      <g id="stars" class="starfield"></g>
+      <g class="shooting-stars" fill="none" stroke="#fff6df" stroke-width="2" stroke-linecap="round">
+        <path class="shooting-star" d="M266 132 l-46 -20"/>
+        <path class="shooting-star second" d="M928 91 l-36 -15"/>
+      </g>
+      <g id="celestial" transform="translate(145 234)">
+        <g id="sun"><circle r="115" fill="url(#sunGlow)"/><circle r="35" fill="#fff3c9" opacity=".93"/><circle r="29" fill="#fff8df" opacity=".45"/></g>
+        <g id="moon" opacity="0"><circle r="70" fill="url(#sunGlow)" opacity=".45"/><circle r="29" fill="#f8ecce" mask="url(#crescent)" opacity=".93"/></g>
+      </g>
+
+      <!-- Mount Lycabettus and the distant Athenian basin. -->
+      <path d="M0 544 C95 510 184 505 273 525 C360 526 409 498 498 504 C591 517 662 489 743 501 C837 480 899 484 949 449 C982 418 1017 356 1056 321 C1074 329 1087 359 1111 383 C1152 420 1191 456 1247 481 C1328 484 1377 504 1440 498 L1440 900 L0 900Z" fill="url(#farHill)" opacity=".65"/>
+      <path d="M1049 327 l7 -13 l9 15 l-4 4 h-9z" fill="#716b79" opacity=".8"/>
+      <path d="M0 553 C143 527 242 554 360 539 C481 520 554 537 644 516 C755 502 832 524 926 504 C1029 497 1139 518 1256 503 C1347 498 1399 511 1440 518 L1440 900 L0 900Z" fill="url(#nearHill)" opacity=".67"/>
+      <path d="M0 603 C152 564 240 593 353 565 C480 546 553 577 681 550 C806 526 882 567 993 542 C1104 516 1269 545 1440 555 L1440 900 L0 900Z" fill="#7c7b80" opacity=".57"/>
+
+      <!-- Tiny city roofs, stepped into the hillside. -->
+      <g opacity=".65">
+        <use href="#house" x="6" y="550" transform="rotate(-2 6 550)"/><use href="#house" x="58" y="548"/><use href="#house" x="115" y="555"/>
+        <use href="#house" x="212" y="542"/><use href="#house" x="264" y="550"/><use href="#house" x="313" y="537"/>
+        <use href="#house" x="453" y="547"/><use href="#house" x="511" y="543"/><use href="#house" x="557" y="544"/>
+        <use href="#house" x="1160" y="528"/><use href="#house" x="1210" y="539"/><use href="#house" x="1263" y="527"/><use href="#house" x="1321" y="536"/><use href="#house" x="1380" y="538"/>
+      </g>
+      <path d="M0 614 Q245 586 443 597 Q534 603 646 585 Q808 563 969 578 Q1163 588 1440 583 L1440 900 H0Z" fill="#6b7077" opacity=".75"/>
+
+      <!-- Acropolis rock, ancient retaining walls, and the Parthenon. -->
+      <path d="M615 643 L649 605 L696 604 L733 590 L794 599 L851 590 L917 602 L965 596 L1031 608 L1095 601 L1144 623 L1180 677 L1139 723 L605 723 L579 678Z" fill="#9b837e"/>
+      <path d="M580 678 L619 642 L652 650 L683 638 L727 649 L755 636 L802 650 L850 639 L913 650 L969 637 L1012 650 L1060 639 L1101 651 L1144 628 L1180 677 L1149 695 L617 694Z" fill="#bea08b" opacity=".75"/>
+      <path d="M610 682 L1158 681 L1147 697 L619 699Z" fill="#8c7473"/>
+      <path d="M630 693 L1143 693 L1126 710 L643 710Z" fill="#aa8a7c"/>
+      <path d="M655 608 L1105 608 L1113 623 L649 623Z" fill="#ba9682"/>
+      <path d="M665 595 L1098 595 L1108 610 L656 610Z" fill="#dec0a0"/>
+      <path d="M673 576 L1089 576 L1102 597 L661 597Z" fill="url(#stone)"/>
+      <path d="M659 570 L1103 570 L1091 555 L670 555Z" fill="#a87874"/>
+      <path d="M679 555 L1082 555 L884 505Z" fill="#dfb593"/>
+      <path d="M693 551 L1070 551 L884 515Z" fill="#b9897b"/>
+      <path d="M756 545 L883 520 L1006 545Z" fill="#d5ad90" opacity=".58"/>
+      <path d="M682 559 H1084 V573 H682Z" fill="#d7aa8c"/>
+      <path d="M692 573 H1074 V581 H692Z" fill="#a98377"/>
+      <path d="M715 583 H1051 V654 H715Z" fill="#a47d72"/>
+      <path d="M744 584 H1025 V650 H744Z" fill="#866d70" opacity=".6"/>
+      <g fill="url(#stone)" stroke="#a67d75" stroke-width="1.5">
+        <path d="M696 574 h21 l-2 6 h-17z M701 580 h12 l3 68 h-18z M696 648 h22 v7 h-22z"/>
+        <path d="M736 574 h21 l-2 6 h-17z M741 580 h12 l3 68 h-18z M736 648 h22 v7 h-22z"/>
+        <path d="M776 574 h21 l-2 6 h-17z M781 580 h12 l3 68 h-18z M776 648 h22 v7 h-22z"/>
+        <path d="M816 574 h21 l-2 6 h-17z M821 580 h12 l3 68 h-18z M816 648 h22 v7 h-22z"/>
+        <path d="M856 574 h21 l-2 6 h-17z M861 580 h12 l3 68 h-18z M856 648 h22 v7 h-22z"/>
+        <path d="M896 574 h21 l-2 6 h-17z M901 580 h12 l3 68 h-18z M896 648 h22 v7 h-22z"/>
+        <path d="M936 574 h21 l-2 6 h-17z M941 580 h12 l3 68 h-18z M936 648 h22 v7 h-22z"/>
+        <path d="M976 574 h21 l-2 6 h-17z M981 580 h12 l3 68 h-18z M976 648 h22 v7 h-22z"/>
+        <path d="M1016 574 h21 l-2 6 h-17z M1021 580 h12 l3 68 h-18z M1016 648 h22 v7 h-22z"/>
+        <path d="M1056 574 h16 l-2 6 h-12z M1060 580 h10 l3 68 h-16z M1056 648 h19 v7 h-19z"/>
+      </g>
+      <g stroke="#e9c6a5" stroke-width="1" opacity=".38"><path d="M705 591 v44 M745 591 v44 M785 591 v44 M825 591 v44 M865 591 v44 M905 591 v44 M945 591 v44 M985 591 v44 M1025 591 v44 M1062 591 v44"/></g>
+      <path d="M677 655 H1090 V663 H677Z" fill="#dfb699"/><path d="M666 663 H1102 V674 H666Z" fill="#bd9784"/><path d="M653 674 H1116 V686 H653Z" fill="#987a77"/>
+      <g fill="none" stroke="#6b6066" stroke-width="2" opacity=".35"><path d="M608 677 l31 -18 l30 10 M1004 679 l37 -25 l37 17 M782 693 l30 8 l38 -8 M909 696 l38 -6"/></g>
+
+      <!-- Olive groves and cypress trees frame the stonework. -->
+      <g opacity=".9"><use href="#cypress" x="575" y="679" transform="translate(575 679) scale(.72) translate(-575 -679)"/><use href="#cypress" x="1201" y="677"/><use href="#cypress" x="1245" y="692" transform="translate(1245 692) scale(.76) translate(-1245 -692)"/></g>
+      <use href="#oliveTree" x="211" y="663" transform="translate(211 663) scale(1.35) translate(-211 -663)"/>
+      <use href="#oliveTree" x="393" y="650" transform="translate(393 650) scale(.92) translate(-393 -650)"/>
+      <use href="#oliveTree" x="1321" y="663" transform="translate(1321 663) scale(1.12) translate(-1321 -663)"/>
+
+      <!-- A curved footpath disappears through the foreground. -->
+      <path d="M0 692 C197 672 302 710 470 694 C589 678 658 714 763 710 C929 711 1123 688 1440 686 L1440 900 H0Z" fill="url(#ground)"/>
+      <path d="M799 702 C719 727 680 759 675 900 H1040 C938 791 923 746 968 702Z" fill="#aa8f80" opacity=".52"/>
+      <path d="M817 710 C750 741 729 792 724 900" fill="none" stroke="#d5ae91" stroke-width="3" opacity=".25"/>
+      <path d="M939 713 C920 771 968 830 1018 900" fill="none" stroke="#d5ae91" stroke-width="3" opacity=".18"/>
+      <path d="M0 773 C199 747 334 785 511 756 C602 739 691 752 767 744 C571 808 395 797 216 834 C126 851 59 866 0 861Z" fill="#505967" opacity=".65"/>
+      <path d="M1119 751 C1247 723 1349 759 1440 742 V900 H1113 C1196 842 1161 790 1119 751Z" fill="#424b5b" opacity=".65"/>
+      <g fill="#839080" opacity=".66"><ellipse cx="103" cy="755" rx="94" ry="23"/><ellipse cx="352" cy="751" rx="88" ry="19"/><ellipse cx="1260" cy="735" rx="98" ry="23"/><ellipse cx="1403" cy="754" rx="90" ry="19"/></g>
+      <g fill="#65746f"><ellipse cx="60" cy="777" rx="70" ry="24"/><ellipse cx="280" cy="775" rx="75" ry="22"/><ellipse cx="1338" cy="773" rx="95" ry="25"/></g>
+      <g opacity=".96"><use href="#oliveTree" x="61" y="797" transform="translate(61 797) scale(1.95) translate(-61 -797)"/><use href="#oliveTree" x="330" y="776" transform="translate(330 776) scale(1.42) translate(-330 -776)"/><use href="#oliveTree" x="1395" y="796" transform="translate(1395 796) scale(1.75) translate(-1395 -796)"/></g>
+      <path d="M0 847 C176 812 276 839 420 816 C510 808 617 826 706 806 L705 900 H0Z" fill="#354355" opacity=".43"/>
+      <path d="M1085 812 C1203 794 1295 826 1440 801 V900 H1061Z" fill="#303e51" opacity=".43"/>
+
+      <!-- Torch pools brighten only as the timer approaches night. -->
+      <g class="torchlight">
+        <g transform="translate(649 674)"><circle r="48" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
+        <g transform="translate(1112 673)"><circle r="52" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
+        <g transform="translate(782 743)"><circle r="56" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
+        <g transform="translate(983 762)"><circle r="60" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
+      </g>
+    </svg>
+
+    <div class="scene-dimmer" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M3 32h34M7 29h26M8 14h24M6 11h28L20 4 6 11Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 15v13M16.5 15v13M23.5 15v13M30 15v13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><div class="brand-name">Ancient Athens</div><div class="brand-sub">Visual Timer</div></div>
+      </div>
+      <div class="top-note" id="period-label">The golden hour</div>
+    </header>
+
+    <section class="timer-panel" aria-label="Timer">
+      <div class="eyebrow" id="timer-eyebrow">A moment to be here</div>
+      <div class="time-row" role="group" aria-label="Timer duration in minutes and seconds">
+        <label class="sr-only" for="minutes">Minutes</label>
+        <input class="time-field" id="minutes" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" spellcheck="false" value="25" aria-label="Minutes">
+        <span class="colon" aria-hidden="true">:</span>
+        <label class="sr-only" for="seconds">Seconds</label>
+        <input class="time-field" id="seconds" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" spellcheck="false" value="00" aria-label="Seconds">
+      </div>
+      <div class="timer-caption" id="timer-caption">Set your time, then settle in</div>
+    </section>
+
+    <div class="bottom-ui" id="bottom-ui">
+      <div class="controls" role="group" aria-label="Timer controls">
+        <button class="control" id="reset" type="button" aria-label="Reset timer" title="Reset timer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a8 8 0 1 1 1.9 5.2"/><path d="M4 5v6h6"/></svg>
+        </button>
+        <button class="control primary" id="play" type="button" aria-label="Start timer" title="Start timer">
+          <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5c0-.8.9-1.3 1.6-.9l9.3 6.5a1.1 1.1 0 0 1 0 1.8l-9.3 6.5c-.7.4-1.6-.1-1.6-.9v-13Z"/></svg>
+          <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        </button>
+        <button class="control" id="fullscreen" type="button" aria-label="Enter fullscreen" title="Toggle fullscreen">
+          <svg id="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/></svg>
+          <svg id="compress-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M4 8h4V4M20 8h-4V4M20 16h-4v4M4 16h4v4"/></svg>
+        </button>
+      </div>
+      <div class="bottom-note">Let the light mark the passing time</div>
+    </div>
+    <div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = (id) => document.getElementById(id);
+      const app = $('app');
+      const sky = $('sky');
+      const minutesInput = $('minutes');
+      const secondsInput = $('seconds');
+      const playButton = $('play');
+      const resetButton = $('reset');
+      const fullscreenButton = $('fullscreen');
+      const periodLabel = $('period-label');
+      const caption = $('timer-caption');
+      const eyebrow = $('timer-eyebrow');
+      const announcement = $('announcement');
+      const celestial = $('celestial');
+      const sun = $('sun');
+      const moon = $('moon');
+      const rootStyle = document.documentElement.style;
+
+      const initialDuration = 25 * 60 * 1000;
+      let durationMs = initialDuration;
+      let remainingMs = initialDuration;
+      let deadline = 0;
+      let running = false;
+      let completed = false;
+      let tickInterval = null;
+      let hideTimeout = null;
+      let audioContext = null;
+      let editingChanged = false;
+
+      const palette = [
+        { p: 0, top: [22, 29, 58], middle: [49, 55, 86], bottom: [96, 83, 101], ink: [244, 231, 211], muted: [222, 211, 201] },
+        { p: .3, top: [54, 55, 91], middle: [117, 91, 112], bottom: [183, 123, 117], ink: [248, 231, 210], muted: [235, 211, 194] },
+        { p: .63, top: [122, 111, 145], middle: [194, 137, 134], bottom: [235, 181, 136], ink: [75, 62, 72], muted: [95, 77, 84] },
+        { p: 1, top: [188, 131, 148], middle: [233, 170, 136], bottom: [247, 211, 163], ink: [73, 63, 73], muted: [104, 87, 98] }
+      ];
+
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const mix = (a, b, t) => a.map((value, i) => Math.round(value + (b[i] - value) * t));
+      const rgb = (values) => `rgb(${values.join(' ')})`;
+      const smooth = (t) => t * t * (3 - 2 * t);
+
+      function colorAt(progress) {
+        for (let i = 0; i < palette.length - 1; i++) {
+          const a = palette[i];
+          const b = palette[i + 1];
+          if (progress <= b.p) {
+            const t = smooth(clamp((progress - a.p) / (b.p - a.p), 0, 1));
+            return { top: mix(a.top, b.top, t), middle: mix(a.middle, b.middle, t), bottom: mix(a.bottom, b.bottom, t), ink: mix(a.ink, b.ink, t), muted: mix(a.muted, b.muted, t) };
+          }
+        }
+        return palette[palette.length - 1];
+      }
+
+      function renderAtmosphere() {
+        const progress = durationMs > 0 ? clamp(remainingMs / durationMs, 0, 1) : 1;
+        const colors = colorAt(progress);
+        rootStyle.setProperty('--sky-top', rgb(colors.top));
+        rootStyle.setProperty('--sky-middle', rgb(colors.middle));
+        rootStyle.setProperty('--sky-bottom', rgb(colors.bottom));
+        rootStyle.setProperty('--ink', rgb(colors.ink));
+        rootStyle.setProperty('--muted-ink', rgb(colors.muted));
+
+        const night = smooth(clamp((.38 - progress) / .26, 0, 1));
+        rootStyle.setProperty('--night-opacity', night.toFixed(3));
+        rootStyle.setProperty('--torch-opacity', smooth(clamp((.3 - progress) / .22, 0, 1)).toFixed(3));
+        rootStyle.setProperty('--scene-dim', (night * .18).toFixed(3));
+
+        const elapsed = 1 - progress;
+        const x = 145 + elapsed * 1150;
+        const y = 235 - 175 * Math.sin(Math.PI * elapsed);
+        celestial.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+        const moonOpacity = smooth(clamp((.36 - progress) / .12, 0, 1));
+        sun.setAttribute('opacity', (1 - moonOpacity).toFixed(3));
+        moon.setAttribute('opacity', moonOpacity.toFixed(3));
+
+        periodLabel.textContent = progress > .7 ? 'The golden hour' : progress > .3 ? 'The softening light' : 'The quiet night';
+      }
+
+      function renderTime() {
+        const totalSeconds = Math.ceil(remainingMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        if (document.activeElement !== minutesInput) minutesInput.value = String(minutes).padStart(2, '0');
+        if (document.activeElement !== secondsInput) secondsInput.value = String(seconds).padStart(2, '0');
+        document.title = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} · Ancient Athens Visual Timer`;
+        renderAtmosphere();
+      }
+
+      function updateControls() {
+        $('play-icon').toggleAttribute('hidden', running);
+        $('pause-icon').toggleAttribute('hidden', !running);
+        playButton.setAttribute('aria-label', running ? 'Pause timer' : 'Start timer');
+        playButton.title = running ? 'Pause timer' : 'Start timer';
+        sky.classList.toggle('breathing', !running && remainingMs > 0 && remainingMs < durationMs);
+        caption.textContent = completed ? 'Your moment is complete' : running ? 'Breathe with the passing light' : remainingMs < durationMs ? 'Take a breath, then continue' : 'Set your time, then settle in';
+        eyebrow.textContent = completed ? 'A moment well spent' : 'A moment to be here';
+      }
+
+      function showControls() {
+        app.classList.remove('ui-hidden');
+        clearTimeout(hideTimeout);
+        if (running && document.activeElement !== minutesInput && document.activeElement !== secondsInput) {
+          hideTimeout = setTimeout(() => app.classList.add('ui-hidden'), 3000);
+        }
+      }
+
+      function stopClock() {
+        running = false;
+        clearInterval(tickInterval);
+        tickInterval = null;
+        clearTimeout(hideTimeout);
+        app.classList.remove('ui-hidden');
+      }
+
+      function finish() {
+        if (completed) return;
+        stopClock();
+        remainingMs = 0;
+        completed = true;
+        renderTime();
+        updateControls();
+        announcement.textContent = 'Timer complete.';
+        playChime();
+      }
+
+      function tick() {
+        if (!running) return;
+        remainingMs = Math.max(0, deadline - performance.now());
+        if (remainingMs === 0) finish();
+        else renderTime();
+      }
+
+      async function unlockAudio() {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          if (!audioContext) audioContext = new AudioContextClass();
+          if (audioContext.state === 'suspended') await audioContext.resume();
+        } catch (_) { /* The visual timer works even if audio is unavailable. */ }
+      }
+
+      function playChime() {
+        if (!audioContext || audioContext.state !== 'running') return;
+        try {
+          const now = audioContext.currentTime;
+          const master = audioContext.createGain();
+          master.gain.value = .15;
+          master.connect(audioContext.destination);
+          const notes = [
+            { frequency: 523.25, start: 0, level: .6, type: 'sine' },
+            { frequency: 659.25, start: .13, level: .45, type: 'sine' },
+            { frequency: 783.99, start: .27, level: .34, type: 'triangle' },
+            { frequency: 1046.5, start: .42, level: .19, type: 'sine' }
+          ];
+          notes.forEach(({ frequency, start, level, type }) => {
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const startTime = now + start;
+            oscillator.type = type;
+            oscillator.frequency.value = frequency;
+            gain.gain.setValueAtTime(.0001, startTime);
+            gain.gain.exponentialRampToValueAtTime(level, startTime + .035);
+            gain.gain.exponentialRampToValueAtTime(.0001, now + 2.5);
+            oscillator.connect(gain);
+            gain.connect(master);
+            oscillator.start(startTime);
+            oscillator.stop(now + 2.52);
+            oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+          });
+          setTimeout(() => master.disconnect(), 2700);
+        } catch (_) { /* Audio failure must not interrupt the timer. */ }
+      }
+
+      function start() {
+        if (running) return;
+        if (remainingMs <= 0) remainingMs = durationMs;
+        if (remainingMs <= 0) {
+          announcement.textContent = 'Set a time above zero to start.';
+          minutesInput.focus();
+          return;
+        }
+        completed = false;
+        running = true;
+        deadline = performance.now() + remainingMs;
+        tickInterval = setInterval(tick, 80);
+        updateControls();
+        showControls();
+        announcement.textContent = 'Timer started.';
+        void unlockAudio();
+      }
+
+      function pause() {
+        if (!running) return;
+        remainingMs = Math.max(0, deadline - performance.now());
+        if (remainingMs === 0) { finish(); return; }
+        stopClock();
+        renderTime();
+        updateControls();
+        announcement.textContent = 'Timer paused.';
+      }
+
+      function reset() {
+        stopClock();
+        completed = false;
+        remainingMs = durationMs;
+        renderTime();
+        updateControls();
+        announcement.textContent = 'Timer reset.';
+      }
+
+      function commitDuration() {
+        if (!editingChanged) { renderTime(); return; }
+        const minutes = clamp(parseInt(minutesInput.value.replace(/\D/g, ''), 10) || 0, 0, 99);
+        const seconds = clamp(parseInt(secondsInput.value.replace(/\D/g, ''), 10) || 0, 0, 59);
+        durationMs = (minutes * 60 + seconds) * 1000;
+        remainingMs = durationMs;
+        completed = false;
+        editingChanged = false;
+        renderTime();
+        updateControls();
+      }
+
+      function handleFieldInput(event) {
+        if (running) stopClock();
+        const field = event.currentTarget;
+        const digits = field.value.replace(/\D/g, '').slice(0, 2);
+        if (field.value !== digits) field.value = digits;
+        editingChanged = true;
+        completed = false;
+        updateControls();
+      }
+
+      [minutesInput, secondsInput].forEach((field) => {
+        field.addEventListener('focus', () => { if (running) pause(); editingChanged = false; field.select(); showControls(); });
+        field.addEventListener('input', handleFieldInput);
+        field.addEventListener('blur', commitDuration);
+        field.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') { event.preventDefault(); field.blur(); playButton.focus(); }
+          if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            event.preventDefault();
+            const max = field === minutesInput ? 99 : 59;
+            const delta = event.key === 'ArrowUp' ? 1 : -1;
+            field.value = String(clamp((parseInt(field.value, 10) || 0) + delta, 0, max)).padStart(2, '0');
+            editingChanged = true;
+            commitDuration();
+            field.select();
+          }
+        });
+      });
+
+      playButton.addEventListener('click', () => running ? pause() : start());
+      resetButton.addEventListener('click', reset);
+
+      fullscreenButton.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+        } catch (_) { announcement.textContent = 'Fullscreen is unavailable in this browser.'; }
+        showControls();
+      });
+      document.addEventListener('fullscreenchange', () => {
+        const expanded = Boolean(document.fullscreenElement);
+        $('expand-icon').toggleAttribute('hidden', expanded);
+        $('compress-icon').toggleAttribute('hidden', !expanded);
+        fullscreenButton.setAttribute('aria-label', expanded ? 'Exit fullscreen' : 'Enter fullscreen');
+        fullscreenButton.title = expanded ? 'Exit fullscreen' : 'Toggle fullscreen';
+      });
+
+      app.addEventListener('pointermove', showControls);
+      app.addEventListener('pointerdown', showControls);
+      app.addEventListener('touchstart', showControls, { passive: true });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+      document.addEventListener('keydown', (event) => {
+        if (event.target instanceof HTMLInputElement) return;
+        if (event.code === 'Space') { event.preventDefault(); running ? pause() : start(); }
+        else if (event.key.toLowerCase() === 'r' && !event.repeat) reset();
+        showControls();
+      });
+
+      // Fixed seed keeps the decorative stars stable across reloads and screen sizes.
+      const starGroup = $('stars');
+      let seed = 15711;
+      const random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      for (let i = 0; i < 86; i++) {
+        const star = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        star.setAttribute('cx', (40 + random() * 1360).toFixed(1));
+        star.setAttribute('cy', (30 + random() * 405).toFixed(1));
+        star.setAttribute('r', (.55 + random() * 1.15).toFixed(2));
+        star.setAttribute('fill', '#fff7e6');
+        star.setAttribute('class', 'star');
+        star.style.setProperty('--twinkle', `${(2.4 + random() * 3.8).toFixed(1)}s`);
+        star.style.setProperty('--delay', `${(-random() * 5).toFixed(1)}s`);
+        starGroup.appendChild(star);
+      }
+
+      renderTime();
+      updateControls();
+    })();
+  </script>
+</body>
+</html>
