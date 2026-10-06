@@ -124,9 +124,9 @@
 
     .brand { display: flex; align-items: center; gap: 13px; }
     .brand-mark { width: 36px; height: 36px; flex: none; opacity: .78; }
-    .brand-name { font-size: 12px; font-weight: 650; letter-spacing: .19em; text-transform: uppercase; line-height: 1.45; }
-    .brand-sub { margin-top: 3px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .65; }
-    .top-note { padding-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; opacity: .7; text-align: right; }
+    .brand-name { font-size: 13px; font-weight: 650; letter-spacing: .19em; text-transform: uppercase; line-height: 1.45; }
+    .brand-sub { margin-top: 3px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .65; }
+    .top-note { padding-top: 4px; font-size: 12px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; opacity: .7; text-align: right; }
 
     .timer-panel {
       position: absolute;
@@ -139,9 +139,10 @@
       align-items: center;
       text-align: center;
       filter: drop-shadow(0 2px 20px rgba(255, 235, 205, .25));
+      transition: opacity .65s ease, transform .65s ease;
     }
 
-    .eyebrow { font-size: 10px; font-weight: 680; letter-spacing: .34em; text-transform: uppercase; opacity: .68; }
+    .eyebrow { font-size: 12px; font-weight: 680; letter-spacing: .34em; text-transform: uppercase; opacity: .68; }
     .time-row { display: flex; align-items: center; justify-content: center; margin-top: 5px; font-variant-numeric: tabular-nums; }
     .time-field {
       width: 2.18ch;
@@ -162,7 +163,7 @@
     }
     .time-field:focus-visible { background: rgba(255, 250, 239, .18); box-shadow: 0 0 0 2px rgba(255, 248, 230, .65); }
     .colon { position: relative; top: -.065em; padding: 0 .04em .04em .01em; font-size: clamp(66px, 9vw, 132px); font-weight: 200; line-height: 1; opacity: .72; }
-    .timer-caption { margin-top: 1px; font-size: 11px; font-weight: 550; letter-spacing: .23em; text-transform: uppercase; opacity: .68; }
+    .timer-caption { margin-top: 1px; font-size: 12px; font-weight: 550; letter-spacing: .23em; text-transform: uppercase; opacity: .68; }
 
     .bottom-ui {
       position: absolute;
@@ -210,9 +211,10 @@
     .control.primary:hover { background: #47454e; }
     .control.primary svg { width: 19px; height: 19px; }
     .divider { width: 1px; height: 22px; margin: 0 3px; background: rgba(75, 70, 76, .16); }
-    .bottom-note { color: var(--muted-ink); font-size: 10px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; text-shadow: 0 1px 10px rgba(255, 245, 228, .7); }
+    .bottom-note { color: var(--muted-ink); font-size: 12px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; text-shadow: 0 1px 10px rgba(255, 245, 228, .7); }
 
     .ui-hidden .topbar { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+    .ui-hidden .timer-panel { opacity: 0; transform: translate(-50%, -8px); pointer-events: none; }
     .ui-hidden .bottom-ui { opacity: 0; transform: translate(-50%, 12px); pointer-events: none; }
 
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -220,12 +222,12 @@
     @media (max-width: 640px) {
       .topbar { top: max(21px, env(safe-area-inset-top)); left: 22px; right: 22px; }
       .brand-mark { width: 29px; height: 29px; }
-      .brand-name { font-size: 10px; letter-spacing: .14em; }
-      .brand-sub, .top-note { font-size: 9px; }
+      .brand-name { font-size: 12px; letter-spacing: .14em; }
+      .brand-sub, .top-note { font-size: 11px; }
       .timer-panel { top: clamp(115px, 20vh, 185px); }
       .time-field { font-size: clamp(69px, 16vw, 108px); }
       .colon { font-size: clamp(62px, 14vw, 98px); }
-      .bottom-note { font-size: 9px; }
+      .bottom-note { font-size: 11px; }
     }
 
     @media (max-height: 570px) {
@@ -255,6 +257,7 @@
         <linearGradient id="ground" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#676b73"/><stop offset="1" stop-color="#383f52"/></linearGradient>
         <radialGradient id="sunGlow"><stop stop-color="#fff7c9" stop-opacity=".62"/><stop offset=".36" stop-color="#fff0b7" stop-opacity=".2"/><stop offset="1" stop-color="#fff0b7" stop-opacity="0"/></radialGradient>
         <radialGradient id="torchGlow"><stop stop-color="#ffdc89" stop-opacity=".8"/><stop offset=".23" stop-color="#ffc66f" stop-opacity=".34"/><stop offset="1" stop-color="#ffbd65" stop-opacity="0"/></radialGradient>
+        <radialGradient id="windowGlow"><stop stop-color="#ffe0a0" stop-opacity=".85"/><stop offset=".3" stop-color="#ffc266" stop-opacity=".3"/><stop offset="1" stop-color="#ffb55d" stop-opacity="0"/></radialGradient>
         <mask id="crescent"><rect x="-40" y="-40" width="80" height="80" fill="white"/><circle cx="12" cy="-9" r="24" fill="black"/></mask>
         <g id="oliveTree">
           <path d="M0 81 C-4 59 -8 42 -5 23 M-4 57 C-18 43 -22 31 -29 24 M-4 45 C11 32 21 25 28 15 M-6 65 C15 51 25 48 38 43" fill="none" stroke="#424b58" stroke-width="8" stroke-linecap="round"/>
@@ -263,7 +266,12 @@
           <path d="M-45 28 Q-20 15 -4 29 M-5 7 Q11 -4 30 5 M18 29 Q34 17 51 20" fill="none" stroke="#899183" stroke-width="4" opacity=".5"/>
         </g>
         <g id="cypress"><path d="M0 0 Q-17 -38 -12 -94 Q-11 -132 0 -148 Q12 -132 12 -94 Q17 -38 0 0Z" fill="#3e515a"/><path d="M0 -139 Q-8 -100 -4 -22" fill="none" stroke="#728078" stroke-width="2" opacity=".35"/></g>
-        <g id="house"><rect x="0" y="11" width="42" height="33" rx="2" fill="#b89b91"/><path d="M-4 12 L21 0 L46 12Z" fill="#8d7378"/><rect x="15" y="26" width="9" height="18" rx="4.5" fill="#706b73"/></g>
+        <g id="house"><rect x="0" y="11" width="42" height="33" rx="2" fill="#b89b91"/><path d="M-4 12 L21 0 L46 12Z" fill="#8d5f58"/><path d="M1 14h40M5 7l7 4m5-8l8 5m6-3l8 5" stroke="#d69a75" stroke-width="1" opacity=".55"/><rect x="16" y="27" width="9" height="17" rx="4.5" fill="#706b73"/><rect class="window-light" x="5" y="22" width="7" height="7" rx="1"/><rect class="window-light" x="30" y="22" width="7" height="7" rx="1"/></g>
+        <g id="houseTall"><rect x="0" y="8" width="35" height="48" rx="2" fill="#aa8a81"/><path d="M-3 9 L18 -4 L39 9Z" fill="#7f5856"/><path d="M4 16h27M4 33h27" stroke="#caa291" opacity=".45"/><rect x="13" y="38" width="9" height="18" rx="4" fill="#665f67"/><rect class="window-light" x="5" y="18" width="7" height="8" rx="1"/><rect class="window-light" x="23" y="18" width="7" height="8" rx="1"/></g>
+        <g id="houseCourt"><rect x="0" y="12" width="58" height="34" rx="2" fill="#c09a87"/><path d="M-4 13 L14 1 L31 12 L46 3 L62 13Z" fill="#925f57"/><rect x="25" y="29" width="9" height="17" rx="4" fill="#6c6267"/><path d="M5 20h15v12H5zm34 0h14v12H39z" fill="#78696a"/><rect class="window-light" x="8" y="22" width="9" height="7" rx="1"/><rect class="window-light" x="42" y="22" width="8" height="7" rx="1"/></g>
+        <g id="corinthianColumn"><path d="M-10 0h20l-2 5H-8zM-6 5h12l3 58H-9zM-11 63h22v7h-22z" fill="url(#stone)" stroke="#9d7a72" stroke-width="1"/><path d="M-8 3q3-8 8 0q5-8 8 0M-5 13h10M-4 18h8" fill="none" stroke="#e8c5a1" stroke-width="1.2"/></g>
+        <g id="caryatid"><path d="M-6 7q0-7 6-7t6 7q0 5-3 7l5 30h-16l5-30q-3-2-3-7Z" fill="#d2ad91"/><path d="M-10 43h20v5h-20M-4 14l-6 18M4 14l6 18" fill="none" stroke="#8d6d6c" stroke-width="2"/><path d="M-6 22h12M-7 29h14M-8 36h16" stroke="#b34f4d" stroke-width="1.5" opacity=".8"/></g>
+        <g id="statue"><circle cx="0" cy="-23" r="5" fill="#e0bea1"/><path d="M-5-17L-9 7H9L5-17Z" fill="#d8b69b"/><path d="M-8-11L-17 2M8-11L17-2" stroke="#d8b69b" stroke-width="4" stroke-linecap="round"/><path d="M-4 7l-3 15M4 7l4 15" stroke="#b79a88" stroke-width="4"/><path d="M-10 22h20v4h-20" fill="#917575"/></g>
       </defs>
 
       <!-- Faint clouds and a changing celestial body. -->
@@ -274,26 +282,25 @@
       </g>
       <g id="stars" class="starfield"></g>
       <g class="shooting-stars" fill="none" stroke="#fff6df" stroke-width="2" stroke-linecap="round">
-        <path class="shooting-star" d="M266 132 l-46 -20"/>
-        <path class="shooting-star second" d="M928 91 l-36 -15"/>
+        <path class="shooting-star" id="shooting-star-a" d="M266 132 l-52 -23"/>
+        <path class="shooting-star" id="shooting-star-b" d="M655 86 l-42 -18"/>
       </g>
-      <g id="celestial" transform="translate(145 234)">
-        <g id="sun"><circle r="115" fill="url(#sunGlow)"/><circle r="35" fill="#fff3c9" opacity=".93"/><circle r="29" fill="#fff8df" opacity=".45"/></g>
-        <g id="moon" opacity="0"><circle r="70" fill="url(#sunGlow)" opacity=".45"/><circle r="29" fill="#f8ecce" mask="url(#crescent)" opacity=".93"/></g>
-      </g>
+      <g id="sun-celestial" transform="translate(120 325)"><circle r="115" fill="url(#sunGlow)"/><circle r="35" fill="#fff0a7" opacity=".96"/><circle r="28" fill="#fff8d6" opacity=".5"/></g>
+      <g id="moon-celestial" transform="translate(120 325)" opacity="0"><circle r="82" fill="url(#sunGlow)" opacity=".36"/><circle r="31" fill="#f4edda" mask="url(#crescent)" opacity=".95"/></g>
 
-      <!-- Mount Lycabettus and the distant Athenian basin. -->
-      <path d="M0 544 C95 510 184 505 273 525 C360 526 409 498 498 504 C591 517 662 489 743 501 C837 480 899 484 949 449 C982 418 1017 356 1056 321 C1074 329 1087 359 1111 383 C1152 420 1191 456 1247 481 C1328 484 1377 504 1440 498 L1440 900 L0 900Z" fill="url(#farHill)" opacity=".65"/>
+      <!-- Mount Pentelicus on the eastern horizon and the sharp cone of Lycabettus. -->
+      <path d="M0 544 C95 510 184 505 273 525 C360 526 409 498 498 504 C576 495 626 445 704 417 C759 440 824 484 891 485 C922 476 941 464 954 449 C982 418 1017 356 1056 321 C1074 329 1087 359 1111 383 C1152 420 1191 456 1247 481 C1328 484 1377 504 1440 498 L1440 900 L0 900Z" fill="url(#farHill)" opacity=".65"/>
+      <path d="M485 504 Q588 432 704 417 Q802 447 890 486 Q782 466 702 448 Q602 464 485 504Z" fill="#b69aa1" opacity=".34"/>
       <path d="M1049 327 l7 -13 l9 15 l-4 4 h-9z" fill="#716b79" opacity=".8"/>
       <path d="M0 553 C143 527 242 554 360 539 C481 520 554 537 644 516 C755 502 832 524 926 504 C1029 497 1139 518 1256 503 C1347 498 1399 511 1440 518 L1440 900 L0 900Z" fill="url(#nearHill)" opacity=".67"/>
       <path d="M0 603 C152 564 240 593 353 565 C480 546 553 577 681 550 C806 526 882 567 993 542 C1104 516 1269 545 1440 555 L1440 900 L0 900Z" fill="#7c7b80" opacity=".57"/>
 
-      <!-- Tiny city roofs, stepped into the hillside. -->
-      <g opacity=".65">
-        <use href="#house" x="6" y="550" transform="rotate(-2 6 550)"/><use href="#house" x="58" y="548"/><use href="#house" x="115" y="555"/>
-        <use href="#house" x="212" y="542"/><use href="#house" x="264" y="550"/><use href="#house" x="313" y="537"/>
-        <use href="#house" x="453" y="547"/><use href="#house" x="511" y="543"/><use href="#house" x="557" y="544"/>
-        <use href="#house" x="1160" y="528"/><use href="#house" x="1210" y="539"/><use href="#house" x="1263" y="527"/><use href="#house" x="1321" y="536"/><use href="#house" x="1380" y="538"/>
+      <!-- Closely packed mud-brick homes, tiled roofs, alleys, and courtyards. -->
+      <g opacity=".82">
+        <g transform="translate(0 506) scale(.78)"><use href="#houseCourt" x="6" y="20"/><use href="#house" x="73" y="25"/><use href="#houseTall" x="120" y="10"/><use href="#house" x="163" y="28"/><use href="#houseCourt" x="213" y="16"/><use href="#houseTall" x="281" y="18"/><use href="#house" x="325" y="29"/><use href="#houseCourt" x="375" y="21"/><use href="#house" x="442" y="28"/><use href="#houseTall" x="491" y="17"/><use href="#house" x="537" y="28"/><use href="#houseCourt" x="585" y="24"/></g>
+        <g transform="translate(22 550) scale(.92)"><use href="#houseTall" x="0" y="0"/><use href="#house" x="42" y="13"/><use href="#houseCourt" x="91" y="8"/><use href="#house" x="157" y="15"/><use href="#houseTall" x="206" y="1"/><use href="#houseCourt" x="248" y="10"/><use href="#house" x="316" y="14"/><use href="#houseTall" x="365" y="0"/><use href="#house" x="410" y="16"/><use href="#houseCourt" x="458" y="10"/><use href="#house" x="526" y="15"/></g>
+        <g transform="translate(1118 506) scale(.8)"><use href="#houseTall" x="0" y="5"/><use href="#houseCourt" x="44" y="16"/><use href="#house" x="111" y="22"/><use href="#houseTall" x="159" y="8"/><use href="#house" x="204" y="23"/><use href="#houseCourt" x="252" y="15"/><use href="#houseTall" x="320" y="4"/></g>
+        <g transform="translate(1166 554) scale(.96)"><use href="#houseCourt" x="0" y="7"/><use href="#houseTall" x="67" y="0"/><use href="#house" x="111" y="14"/><use href="#houseCourt" x="159" y="8"/><use href="#house" x="227" y="15"/></g>
       </g>
       <path d="M0 614 Q245 586 443 597 Q534 603 646 585 Q808 563 969 578 Q1163 588 1440 583 L1440 900 H0Z" fill="#6b7077" opacity=".75"/>
 
@@ -329,6 +336,46 @@
       <path d="M677 655 H1090 V663 H677Z" fill="#dfb699"/><path d="M666 663 H1102 V674 H666Z" fill="#bd9784"/><path d="M653 674 H1116 V686 H653Z" fill="#987a77"/>
       <g fill="none" stroke="#6b6066" stroke-width="2" opacity=".35"><path d="M608 677 l31 -18 l30 10 M1004 679 l37 -25 l37 17 M782 693 l30 8 l38 -8 M909 696 l38 -6"/></g>
 
+      <!-- Erechtheion and its six Caryatids, tucked beside the Parthenon. -->
+      <g id="erechtheion" transform="translate(503 568)">
+        <path d="M0 23h145v9H0zM9 13h127v11H9zM22 1h101l16 13H5Z" fill="#d6b091" stroke="#9b7770" stroke-width="1.5"/>
+        <path d="M21 32h105v54H21z" fill="#9b7972"/>
+        <g fill="url(#stone)" stroke="#95726d" stroke-width="1"><path d="M12 29h15l-2 5h-11zm3 5h9l2 47H13zm-4 47h17v6H11z"/><path d="M119 29h15l-2 5h-11zm3 5h9l2 47h-13zm-4 47h17v6h-17z"/></g>
+        <path d="M36 43h66v8H36zM31 38h76l-8-9H40Z" fill="#cfaa8d"/>
+        <g transform="translate(42 48) scale(.68)"><use href="#caryatid" x="0"/><use href="#caryatid" x="17"/><use href="#caryatid" x="34"/><use href="#caryatid" x="51"/><use href="#caryatid" x="68"/><use href="#caryatid" x="85"/></g>
+        <path d="M-2 87h151v9H-2z" fill="#a47e75"/>
+      </g>
+
+      <!-- Temple of Olympian Zeus: monumental Corinthian columns below the rock. -->
+      <g id="olympian-zeus" transform="translate(1120 627)">
+        <path d="M-26 75h223v12H-31zM-14 66h198v10H-18z" fill="#aa877b"/>
+        <g transform="translate(0 0)"><use href="#corinthianColumn"/><use href="#corinthianColumn" x="29"/><use href="#corinthianColumn" x="58"/><use href="#corinthianColumn" x="87"/><use href="#corinthianColumn" x="116"/><use href="#corinthianColumn" x="145"/><use href="#corinthianColumn" x="174"/></g>
+        <path d="M-13-6h203v9H-13zM-6-14h188l11 8H-17Z" fill="#d4ae90" stroke="#9d7870" stroke-width="1"/>
+        <path d="M5-10h168" stroke="#efd0aa" stroke-width="2" opacity=".5"/>
+      </g>
+
+      <!-- Ancient Agora with stoas, stalls, and the Temple of Hephaestus. -->
+      <g id="agora" transform="translate(96 629)">
+        <path d="M0 82Q185 60 382 82v25H0Z" fill="#80726f" opacity=".8"/>
+        <g id="hephaestus" transform="translate(88 0)">
+          <path d="M0 20h186v10H0zM10 12h166L93-15Z" fill="#d0a788" stroke="#906f69" stroke-width="1.2"/>
+          <path d="M19 30h148v52H19z" fill="#8f716d"/>
+          <g fill="url(#stone)"><path d="M5 27h17l-2 5H7zm4 5h10l2 48H6zm-5 48h19v7H4z"/><path d="M37 27h17l-2 5H39zm4 5h10l2 48H38zm-5 48h19v7H36z"/><path d="M69 27h17l-2 5H71zm4 5h10l2 48H70zm-5 48h19v7H68z"/><path d="M101 27h17l-2 5h-13zm4 5h10l2 48h-15zm-5 48h19v7h-19z"/><path d="M133 27h17l-2 5h-13zm4 5h10l2 48h-15zm-5 48h19v7h-19z"/><path d="M165 27h17l-2 5h-13zm4 5h10l2 48h-15zm-5 48h19v7h-19z"/></g>
+          <path d="M-6 87h199v10H-6Z" fill="#9c7971"/>
+        </g>
+        <g transform="translate(0 80)"><path d="M0 0h70v9H0M6 9h5v32H6m16-32h5v32h-5m17-32h5v32h-5m17-32h5v32h-5M0 41h70" stroke="#c7a084" stroke-width="4"/><path d="M-5 0L35-16L75 0Z" fill="#915f58"/></g>
+        <g transform="translate(294 76)"><path d="M0 0h92v9H0M8 9h5v35H8m20-35h5v35h-5m20-35h5v35h-5m20-35h5v35h-5M0 44h92" stroke="#c7a084" stroke-width="4"/><path d="M-5 0L46-18L97 0Z" fill="#8b5c57"/></g>
+        <path d="M22 117h350" stroke="#b7957f" stroke-width="3" stroke-dasharray="8 8" opacity=".7"/>
+      </g>
+
+      <!-- Polychromatic public statuary, including gilded Athena Promachos. -->
+      <g id="statues">
+        <g transform="translate(619 548)"><circle r="7" cy="-46" fill="#d6a84b"/><path d="M-8-37L-14 4H14L8-37Z" fill="#c49a38"/><path d="M-6-31L-25-3M7-31L24-14" stroke="#d6a84b" stroke-width="5" stroke-linecap="round"/><path d="M22-50v63" stroke="#9c7931" stroke-width="3"/><path d="M15-50h14l-7-14Z" fill="#d7aa45"/><path d="M-9 4l-4 24M9 4l5 24" stroke="#b48934" stroke-width="5"/><path d="M-18 28h36v6h-36" fill="#8d6f63"/></g>
+        <g transform="translate(409 735) scale(.9)"><use href="#statue"/><path d="M-9-4h18" stroke="#4c7390" stroke-width="5"/></g>
+        <g transform="translate(520 720) scale(.75)"><use href="#statue"/><path d="M-8-5h16" stroke="#a84745" stroke-width="5"/></g>
+        <g transform="translate(1260 728) scale(.82)"><use href="#statue"/><path d="M-8-4h16" stroke="#456f66" stroke-width="5"/></g>
+      </g>
+
       <!-- Olive groves and cypress trees frame the stonework. -->
       <g opacity=".9"><use href="#cypress" x="575" y="679" transform="translate(575 679) scale(.72) translate(-575 -679)"/><use href="#cypress" x="1201" y="677"/><use href="#cypress" x="1245" y="692" transform="translate(1245 692) scale(.76) translate(-1245 -692)"/></g>
       <use href="#oliveTree" x="211" y="663" transform="translate(211 663) scale(1.35) translate(-211 -663)"/>
@@ -350,8 +397,10 @@
 
       <!-- Torch pools brighten only as the timer approaches night. -->
       <g class="torchlight">
+        <g transform="translate(218 708)"><circle r="44" fill="url(#torchGlow)"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
         <g transform="translate(649 674)"><circle r="48" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
         <g transform="translate(1112 673)"><circle r="52" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
+        <g transform="translate(1207 681)"><circle r="46" fill="url(#torchGlow)"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
         <g transform="translate(782 743)"><circle r="56" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
         <g transform="translate(983 762)"><circle r="60" fill="url(#torchGlow)"/><path d="M-2 0 L0 8 L2 0Z" fill="#6a544d"/><ellipse class="flame" cx="0" cy="-4" rx="3" ry="7" fill="#ffe3a3"/></g>
       </g>
@@ -415,9 +464,8 @@
       const caption = $('timer-caption');
       const eyebrow = $('timer-eyebrow');
       const announcement = $('announcement');
-      const celestial = $('celestial');
-      const sun = $('sun');
-      const moon = $('moon');
+      const sunCelestial = $('sun-celestial');
+      const moonCelestial = $('moon-celestial');
       const rootStyle = document.documentElement.style;
 
       const initialDuration = 25 * 60 * 1000;
@@ -430,12 +478,14 @@
       let hideTimeout = null;
       let audioContext = null;
       let editingChanged = false;
+      let nextShootingStarAt = Infinity;
+      let shootingStarIndex = 0;
 
       const palette = [
         { p: 0, top: [22, 29, 58], middle: [49, 55, 86], bottom: [96, 83, 101], ink: [244, 231, 211], muted: [222, 211, 201] },
-        { p: .3, top: [54, 55, 91], middle: [117, 91, 112], bottom: [183, 123, 117], ink: [248, 231, 210], muted: [235, 211, 194] },
-        { p: .63, top: [122, 111, 145], middle: [194, 137, 134], bottom: [235, 181, 136], ink: [75, 62, 72], muted: [95, 77, 84] },
-        { p: 1, top: [188, 131, 148], middle: [233, 170, 136], bottom: [247, 211, 163], ink: [73, 63, 73], muted: [104, 87, 98] }
+        { p: .33, top: [62, 49, 86], middle: [137, 72, 92], bottom: [218, 124, 91], ink: [248, 232, 214], muted: [235, 213, 198] },
+        { p: .66, top: [86, 167, 186], middle: [127, 194, 200], bottom: [233, 199, 151], ink: [55, 66, 72], muted: [78, 86, 87] },
+        { p: 1, top: [121, 139, 158], middle: [213, 145, 116], bottom: [248, 190, 115], ink: [69, 61, 67], muted: [96, 79, 82] }
       ];
 
       const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -464,20 +514,25 @@
         rootStyle.setProperty('--ink', rgb(colors.ink));
         rootStyle.setProperty('--muted-ink', rgb(colors.muted));
 
-        const night = smooth(clamp((.38 - progress) / .26, 0, 1));
+        const night = smooth(clamp((.36 - progress) / .28, 0, 1));
         rootStyle.setProperty('--night-opacity', night.toFixed(3));
-        rootStyle.setProperty('--torch-opacity', smooth(clamp((.3 - progress) / .22, 0, 1)).toFixed(3));
+        rootStyle.setProperty('--torch-opacity', smooth(clamp((1 / 3 - progress) / .22, 0, 1)).toFixed(3));
+        rootStyle.setProperty('--window-opacity', smooth(clamp((1 / 3 - progress) / .14, 0, 1)).toFixed(3));
         rootStyle.setProperty('--scene-dim', (night * .18).toFixed(3));
 
-        const elapsed = 1 - progress;
-        const x = 145 + elapsed * 1150;
-        const y = 235 - 175 * Math.sin(Math.PI * elapsed);
-        celestial.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
-        const moonOpacity = smooth(clamp((.36 - progress) / .12, 0, 1));
-        sun.setAttribute('opacity', (1 - moonOpacity).toFixed(3));
-        moon.setAttribute('opacity', moonOpacity.toFixed(3));
+        const sunPhase = clamp((1 - progress) / .67, 0, 1);
+        const sunX = 120 + 1200 * sunPhase;
+        const sunY = 325 - 250 * Math.sin(Math.PI * sunPhase);
+        sunCelestial.setAttribute('transform', `translate(${sunX.toFixed(2)} ${sunY.toFixed(2)})`);
+        sunCelestial.setAttribute('opacity', smooth(clamp((progress - .33) / .025, 0, 1)).toFixed(3));
 
-        periodLabel.textContent = progress > .7 ? 'The golden hour' : progress > .3 ? 'The softening light' : 'The quiet night';
+        const moonPhase = clamp((.33 - progress) / .33, 0, 1);
+        const moonX = 120 + 600 * moonPhase;
+        const moonY = 325 - 235 * Math.sin(Math.PI * .5 * moonPhase);
+        moonCelestial.setAttribute('transform', `translate(${moonX.toFixed(2)} ${moonY.toFixed(2)})`);
+        moonCelestial.setAttribute('opacity', smooth(clamp((.34 - progress) / .025, 0, 1)).toFixed(3));
+
+        periodLabel.textContent = progress > .82 ? 'Deep dawn' : progress > .49 ? 'High Attic day' : progress > .33 ? 'Violet dusk' : 'The quiet night';
       }
 
       function renderTime() {
@@ -496,7 +551,8 @@
         playButton.setAttribute('aria-label', running ? 'Pause timer' : 'Start timer');
         playButton.title = running ? 'Pause timer' : 'Start timer';
         sky.classList.toggle('breathing', !running && remainingMs > 0 && remainingMs < durationMs);
-        caption.textContent = completed ? 'Your moment is complete' : running ? 'Breathe with the passing light' : remainingMs < durationMs ? 'Take a breath, then continue' : 'Set your time, then settle in';
+        app.classList.toggle('paused', !running && remainingMs > 0 && remainingMs < durationMs);
+        caption.textContent = completed ? 'Your moment is complete' : running ? 'Discuss' : remainingMs < durationMs ? 'Take a breath, then continue' : 'Set your time, then settle in';
         eyebrow.textContent = completed ? 'A moment well spent' : 'A moment to be here';
       }
 
@@ -531,7 +587,20 @@
         if (!running) return;
         remainingMs = Math.max(0, deadline - performance.now());
         if (remainingMs === 0) finish();
-        else renderTime();
+        else {
+          renderTime();
+          const progress = durationMs > 0 ? remainingMs / durationMs : 1;
+          if (progress < 1 / 3) {
+            if (!Number.isFinite(nextShootingStarAt)) nextShootingStarAt = performance.now() + 9000 + Math.random() * 17000;
+            if (performance.now() >= nextShootingStarAt) {
+              const star = $(shootingStarIndex++ % 2 ? 'shooting-star-b' : 'shooting-star-a');
+              star.classList.remove('active');
+              setTimeout(() => star.classList.add('active'), 20);
+              setTimeout(() => star.classList.remove('active'), 1450);
+              nextShootingStarAt = performance.now() + 18000 + Math.random() * 30000;
+            }
+          } else nextShootingStarAt = Infinity;
+        }
       }
 
       async function unlockAudio() {
@@ -606,6 +675,7 @@
       function reset() {
         stopClock();
         completed = false;
+        nextShootingStarAt = Infinity;
         remainingMs = durationMs;
         renderTime();
         updateControls();
